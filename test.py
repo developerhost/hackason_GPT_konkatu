@@ -9,10 +9,17 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage
 )
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    SystemMessagePromptTemplate,
-    HumanMessagePromptTemplate,
+# from langchain.prompts.chat import (
+#     ChatPromptTemplate,
+#     SystemMessagePromptTemplate,
+#     HumanMessagePromptTemplate,
+# )
+
+from langchain.prompts import (
+    ChatPromptTemplate, 
+    MessagesPlaceholder, 
+    SystemMessagePromptTemplate, 
+    HumanMessagePromptTemplate
 )
 from langchain.schema import AIMessage
 from dotenv import load_dotenv
@@ -32,15 +39,15 @@ except:
 
 prompt = ChatPromptTemplate.from_messages([
     SystemMessagePromptTemplate.from_template("あなたは、百戦錬磨のプレイボーイです。とても優しく相手の女性を気遣いながら素敵なメールの返事を書いて女性を喜ばせます。ほんの少しセクシーな大人の男性の雰囲気を醸し出した文章によりお相手の女性はうっとりしていまいます。これからあなたは私になりきり女性へのメッセージの返信を代筆します。メッセージはしつこくならない程度の200文字程度の文章でやりとりをします。なおかつ相手のプロフィールに準拠した内容です。ここから下は私が登録している婚活アプリのプロフィール情報です。プロフィール情報をうまく活用してメッセージを作成してください。"),
-    # MessagesPlaceholder(variable_name="history"),
-    HumanMessagePromptTemplate.from_template("自分のプロフィール:\n```\n{text_my_profile_input}\n```\n相手のプロフィール:\n```\n{text_your_profile_input}\n```")
+    MessagesPlaceholder(variable_name="history"),
+    HumanMessagePromptTemplate.from_template("{input}")
 ])
 
 # チャット用のチェーンのインスタンスの作成
 chain = ConversationChain(
     llm=chat,
+    prompt=prompt,
     memory=memory,
-    prompt=prompt
 )
 
 
@@ -59,50 +66,14 @@ send_button = st.button("送信")
 
 # チャット履歴（HumanMessageやAIMessageなど）を格納する配列の初期化
 history = []
-# template=
-# system_message_prompt = SystemMessagePromptTemplate.from_template(template)
-# human_template = f"自分のプロフィール:\n```\n{text_my_profile_input}\n```\n相手のプロフィール:\n```\n{text_your_profile_input}\n```"
-
-# human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
-
-# # chatプロンプトテンプレートの準備
-# chat_prompt_message = ChatPromptTemplate.from_messages([system_message_prompt, human_message_prompt])
-
-
 
 # ボタンが押された時、OpenAIのAPIを実行
 if send_button:
     send_button = False
 
-    # system_message_prompt = SystemMessage(
-    #   content="あなたは、百戦錬磨のプレイボーイです。とても優しく相手の女性を気遣いながら素敵なメールの返事を書いて女性を喜ばせます。ほんの少しセクシーな大人の男性の雰囲気を醸し出した文章によりお相手の女性はうっとりしていまいます。これからあなたは私になりきり女性へのメッセージの返信を代筆します。メッセージはしつこくならない程度の200文字程度の文章でやりとりをします。なおかつ相手のプロフィールに準拠した内容です。ここから下は私が登録している婚活アプリのプロフィール情報です。プロフィール情報をうまく活用してメッセージを作成してください。"
-    # )
-
-    # human_message_prompt = HumanMessage(
-    #   content="自分のプロフィール:\n```\n"+text_my_profile_input+"\n```\n相手のプロフィール:\n```\n"+text_your_profile_input+"\n```"
-    # ),
-
-
     chat_prompt = AIMessage
-    # ChatGPTの実行
-    # chain(
-    #     text_my_profile_input + text_your_profile_input,
-    # )
-    chain.predict(text_my_profile_input=text_my_profile_input, text_your_profile_input=text_your_profile_input)
 
-    # chain2(
-    #     SystemMessage(
-    #     f"返信に対しての回答をください
-    #     f"プロフィール情報をうまく活用してメッセージを作成してください。"
-    #     ),
-    #     HumanMessage(
-    #     f"相手からの返信:"
-    #     f"```{text_my_profile_input}```"
-    #     f"\n相手のプロフィール:"
-    #     f"```{text_your_profile_input}```"
-    #     ),
-    #     # 自分が送るメッセージ
-    # )
+    chain.predict(input="自分のプロフィール:\n```\n"+text_my_profile_input+"\n```\n相手のプロフィール:\n```\n"+text_your_profile_input+"\n```")
 
     # セッションへのチャット履歴の保存
     st.session_state["memory"] = memory
