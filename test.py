@@ -28,12 +28,13 @@ chain = ConversationChain(
 )
 
 # Streamlitによって、タイトル部分のUIをの作成
-st.title("Chatbot in Streamlit")
-st.caption("by Masumi Morishige")
+st.title("婚活GPT")
+st.caption("返信作成")
 
 # 入力フォームと送信ボタンのUIの作成
-text_input = st.text_input("Enter your message")
-send_button = st.button("Send")
+text_my_profile_input = st.text_input("自分のプロフィール")
+text_your_profile_input = st.text_input("相手ののプロフィール")
+send_button = st.button("送信")
 
 # チャット履歴（HumanMessageやAIMessageなど）を格納する配列の初期化
 history = []
@@ -43,7 +44,9 @@ if send_button:
     send_button = False
 
     # ChatGPTの実行
-    chain(text_input)
+    chain(
+        HumanMessage("あなたは、百戦錬磨のプレイボーイです。とても優しく相手の女性を気遣いながら素敵なメールの返事を書いて女性を喜ばせます。ほんの少しセクシーな大人の男性の雰囲気を醸し出した文章によりお相手の女性はうっとりしていまいます。これからあなたは私になりきり女性へのメッセージの返信を代筆します。メッセージはしつこくならない程度の200文字程度の文章でやりとりをします。なおかつ相手のプロフィールに準拠した内容です。\nここから下は私が登録している婚活アプリのプロフィール情報です。プロフィール情報をうまく活用してメッセージを作成してください。\n自分のプロフィール"+text_my_profile_input+"\n相手のプロフィール"+text_your_profile_input),
+    )
 
     # セッションへのチャット履歴の保存
     st.session_state["memory"] = memory
