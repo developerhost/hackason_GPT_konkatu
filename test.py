@@ -30,11 +30,19 @@ try:
 except:
     memory = ConversationBufferMemory(return_messages=True)
 
+prompt = ChatPromptTemplate.from_messages([
+    SystemMessagePromptTemplate.from_template("あなたは、百戦錬磨のプレイボーイです。とても優しく相手の女性を気遣いながら素敵なメールの返事を書いて女性を喜ばせます。ほんの少しセクシーな大人の男性の雰囲気を醸し出した文章によりお相手の女性はうっとりしていまいます。これからあなたは私になりきり女性へのメッセージの返信を代筆します。メッセージはしつこくならない程度の200文字程度の文章でやりとりをします。なおかつ相手のプロフィールに準拠した内容です。ここから下は私が登録している婚活アプリのプロフィール情報です。プロフィール情報をうまく活用してメッセージを作成してください。"),
+    # MessagesPlaceholder(variable_name="history"),
+    HumanMessagePromptTemplate.from_template("自分のプロフィール:\n```\n{text_my_profile_input}\n```\n相手のプロフィール:\n```\n{text_your_profile_input}\n```")
+])
+
 # チャット用のチェーンのインスタンスの作成
 chain = ConversationChain(
     llm=chat,
     memory=memory,
+    prompt=prompt
 )
+
 
 # Streamlitによって、タイトル部分のUIをの作成
 st.title("婚活GPT")
@@ -51,33 +59,37 @@ send_button = st.button("送信")
 
 # チャット履歴（HumanMessageやAIMessageなど）を格納する配列の初期化
 history = []
+# template=
+# system_message_prompt = SystemMessagePromptTemplate.from_template(template)
+# human_template = f"自分のプロフィール:\n```\n{text_my_profile_input}\n```\n相手のプロフィール:\n```\n{text_your_profile_input}\n```"
+
+# human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
+
+# # chatプロンプトテンプレートの準備
+# chat_prompt_message = ChatPromptTemplate.from_messages([system_message_prompt, human_message_prompt])
+
+
 
 # ボタンが押された時、OpenAIのAPIを実行
 if send_button:
     send_button = False
 
-    system_message_prompt = SystemMessage(
-      f"あなたは、百戦錬磨のプレイボーイです。とても優しく相手の女性を気遣いながら素敵なメールの返事を書いて女性を喜ばせます。"
-      f"ほんの少しセクシーな大人の男性の雰囲気を醸し出した文章によりお相手の女性はうっとりしていまいます。"
-      f"これからあなたは私になりきり女性へのメッセージの返信を代筆します。"
-      f"メッセージはしつこくならない程度の200文字程度の文章でやりとりをします。"
-      f"なおかつ相手のプロフィールに準拠した内容です。"
-      f"ここから下は私が登録している婚活アプリのプロフィール情報です。"
-      f"プロフィール情報をうまく活用してメッセージを作成してください。"
-    ),
+    # system_message_prompt = SystemMessage(
+    #   content="あなたは、百戦錬磨のプレイボーイです。とても優しく相手の女性を気遣いながら素敵なメールの返事を書いて女性を喜ばせます。ほんの少しセクシーな大人の男性の雰囲気を醸し出した文章によりお相手の女性はうっとりしていまいます。これからあなたは私になりきり女性へのメッセージの返信を代筆します。メッセージはしつこくならない程度の200文字程度の文章でやりとりをします。なおかつ相手のプロフィールに準拠した内容です。ここから下は私が登録している婚活アプリのプロフィール情報です。プロフィール情報をうまく活用してメッセージを作成してください。"
+    # )
 
-    human_message_prompt = HumanMessage(
-      f"自分のプロフィール:"
-      f"```{text_my_profile_input}```"
-      f"\n相手のプロフィール:"
-      f"```{text_your_profile_input}```"
-    ),
+    # human_message_prompt = HumanMessage(
+    #   content="自分のプロフィール:\n```\n"+text_my_profile_input+"\n```\n相手のプロフィール:\n```\n"+text_your_profile_input+"\n```"
+    # ),
+
 
     chat_prompt = AIMessage
     # ChatGPTの実行
-    chain(
-       system_message_prompt + human_message_prompt
-    )
+    # chain(
+    #     text_my_profile_input + text_your_profile_input,
+    # )
+    chain.predict(text_my_profile_input=text_my_profile_input, text_your_profile_input=text_your_profile_input)
+
     # chain2(
     #     SystemMessage(
     #     f"返信に対しての回答をください
