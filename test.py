@@ -68,7 +68,6 @@ aiHistory = []
 
 if "isDisplayReply" not in st.session_state:
     st.session_state["isDisplayReply"] = 0
-    st.write(st.session_state.isDisplayReply)
 
 # 入力フォームと送信ボタンのUIの作成
 if st.session_state.isDisplayReply == 0:
@@ -86,7 +85,6 @@ else:
 if send_button:
     send_button = False
     st.session_state["isDisplayReply"] = 1
-    st.write(st.session_state.isDisplayReply)
 
     chat_prompt = AIMessage
     with st.spinner("ChatGPT is typing ..."):
