@@ -56,7 +56,6 @@ chain_reply = ConversationChain(
 
 button_click_num = 0
 
-
 # Streamlitによって、タイトル部分のUIをの作成
 st.title("婚活GPT")
 st.caption("返信作成")
@@ -67,17 +66,17 @@ history = []
 humanHistory = []
 aiHistory = []
 
+if "isDisplayReply" not in st.session_state:
+    st.session_state["isDisplayReply"] = 0
+    st.write(st.session_state.isDisplayReply)
+
 # 入力フォームと送信ボタンのUIの作成
-# if len(history) > 0:
-reply = st.text_input("相手の返信")
-# else:
-text_my_profile_input = st.text_input("自分のプロフィール")
-text_your_profile_input = st.text_input("相手のプロフィール")
-    
-# if len(history) > 0:
-send_reply_button = st.button("返信を送信")
-# else:
-send_button = st.button("送信")
+if st.session_state.isDisplayReply == 0:
+    text_my_profile_input = st.text_area("自分のプロフィール", height=150, max_chars=400)
+    text_your_profile_input = st.text_area("相手のプロフィール", height=150, max_chars=400)
+    send_button = st.button("送信")
+else:
+    send_button = None
 
 # text_my_profile_input = "はじめまして。都内の企業で管理職をしているナオキです。年齢は40代の前半です。仕事はある程度部下に任せる立場になり、すこし気持ちや時間に余裕がもてたのと、自分とは違う世代の方と交流することで、若い世代との接し方が学べたり自分磨きになるのでは？と思いサイトに登録しました。一緒に美味しい食事やお酒を楽しんだり、ゆっくりとお話する素敵な時間を過ごせる女性を探しています。20代前半～30代ぐらいで、のんびり時間をすごせる、ちょっとおっとりした女性を希望しています。複数の方と同時に関係をもつことは考えていないので、長期的、定期的な関係を築ける方が見つかればと思っています。はじめは、ランチやカフェでお茶などでお話をしながら、お互いの印象を確認したいなと思います。オシャレなカフェやスイーツに詳しい方は是非教えてください。休日はゴルフやドライブ、旅行先などで散歩をしてのんびり過ごすのが好きです。親しくなれたらご一緒できると嬉しいです。長文になりましたが、最後までご覧いただきありがとうございました。よい出会いになりますように。"
 
@@ -86,10 +85,12 @@ send_button = st.button("送信")
 # ボタンが押された時、OpenAIのAPIを実行
 if send_button:
     send_button = False
+    st.session_state["isDisplayReply"] = 1
+    st.write(st.session_state.isDisplayReply)
 
     chat_prompt = AIMessage
-
-    chain.predict(input="自分のプロフィール:\n```\n"+text_my_profile_input+"\n```\n相手のプロフィール:\n```\n"+text_your_profile_input+"\n```")
+    with st.spinner("ChatGPT is typing ..."):
+        chain.predict(input="自分のプロフィール:\n```\n"+text_my_profile_input+"\n```\n相手のプロフィール:\n```\n"+text_your_profile_input+"\n```")
 
     # セッションへのチャット履歴の保存
     st.session_state["memory"] = memory
@@ -100,6 +101,18 @@ if send_button:
     except Exception as e:
         st.error(e)
 
+    # チャット履歴の表示
+    for index, chat_message in enumerate(history):
+        if type(chat_message) == HumanMessage:
+            message(chat_message.content, is_user=True, key=2 * index)
+        elif type(chat_message) == AIMessage:
+            message(chat_message.content, is_user=False, key=2 * index + 1)
+
+if st.session_state.isDisplayReply == 1:
+    reply = st.text_input("相手の返信", max_chars=400)
+    send_reply_button = st.button("返信を送信")
+else:
+    send_reply_button = None
 # ボタンが押された時、返信用のOpenAIのAPIを実行
 # if len(history) > 0:
 if send_reply_button:
@@ -120,10 +133,8 @@ if send_reply_button:
       elif type(chat_message) == AIMessage:
           aiHistory.append(chat_message.content)
 
-    print(humanHistory)
-    print(aiHistory)
-
-    chain.predict(input="自分のメッセージ:\n```\n"+aiHistory[button_click_num]+"\n```\n相手からの返信:\n```\n"+reply+"\n```")
+    with st.spinner("ChatGPT is typing ..."):
+        chain.predict(input="自分のメッセージ:\n```\n"+aiHistory[button_click_num]+"\n```\n相手からの返信:\n```\n"+reply+"\n```")
 
     #　todo メッセージ履歴にしたい
     # chain.predict(input="メッセージの履歴:\n```\n"+text_my_profile_input+"\n```\n相手からの返信:\n```\n"+reply+"\n```")
@@ -133,9 +144,9 @@ if send_reply_button:
 
     button_click_num += 1
 
-# チャット履歴の表示
-for index, chat_message in enumerate(history):
-    if type(chat_message) == HumanMessage:
-        message(chat_message.content, is_user=True, key=2 * index)
-    elif type(chat_message) == AIMessage:
-        message(chat_message.content, is_user=False, key=2 * index + 1)
+    # チャット履歴の表示
+    for index, chat_message in enumerate(history):
+        if type(chat_message) == HumanMessage:
+            message(chat_message.content, is_user=True, key=2 * index)
+        elif type(chat_message) == AIMessage:
+            message(chat_message.content, is_user=False, key=2 * index + 1)
