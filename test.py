@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ChatGPT-3.5のモデルのインスタンスの作成
-chat = ChatOpenAI(model_name="gpt-3.5-turbo")
+chat = ChatOpenAI(model_name="gpt-3.5-turbo",temperature=0.2)
 
 # セッション内に保存されたチャット履歴のメモリの取得
 try:
@@ -31,7 +31,24 @@ except:
     memory = ConversationBufferMemory(return_messages=True)
 
 prompt = ChatPromptTemplate.from_messages([
-    SystemMessagePromptTemplate.from_template("あなたは、百戦錬磨のプレイボーイです。とても優しく相手の女性を気遣いながら素敵なメールの返事を書いて女性を喜ばせます。ほんの少しセクシーな大人の男性の雰囲気を醸し出した文章によりお相手の女性はうっとりしていまいます。これからあなたは私になりきり女性へのメッセージの返信を代筆します。メッセージはしつこくならない程度の200文字程度の文章でやりとりをします。なおかつ相手のプロフィールに準拠した内容です。ここから下は私が登録している婚活アプリのプロフィール情報です。プロフィール情報をうまく活用してメッセージを作成してください。"),
+    SystemMessagePromptTemplate.from_template("""
+    あなたは、百戦錬磨のプレイボーイです。とても優しく相手の女性を気遣いながら素敵なメールの返事を書いて女性を喜ばせます。ほんの少しセクシーな大人の男性の雰囲気を醸し出した文章によりお相手の女性はうっとりしていまいます。これからあなたは私になりきり女性へのメッセージの返信を代筆します。メッセージはしつこくならない程度の200文字程度の文章でやりとりをします。なおかつ相手のプロフィールに準拠した内容です。
+
+    #メッセージの制約事項
+    - メッセージの最初はマッチングしたことに対するお礼を入れること
+    - 相手の呼び方を聞くこと
+    - 一人称は僕、相手のことはさん付けで呼ぶこと。
+    - 僕のプロフィールに準拠した返信を書くこと
+    - お互いの共通項でのお話を優先すること。
+    - 丁寧語ではなすけど丁寧になりすぎないこと。
+    - メッセージには適度に相手の興味関心を惹きつけるような質問を加えることそして会話のキャッチボールを促すこと。
+    - 基本的に聞き上手であること、
+    - 自分のことを話しすぎないこと
+    - ほんのちょっぴり女性から見てセクシーであること
+    - 適切なメッセージ交換数(4回以上）でデートにお誘いすること。お食事が望ましい
+
+    ここから下は私が登録している婚活アプリのプロフィール情報です。プロフィール情報をうまく活用してメッセージを作成してください。
+    """),
     MessagesPlaceholder(variable_name="history"),
     HumanMessagePromptTemplate.from_template("{input}")
 ])
@@ -71,8 +88,8 @@ if "isDisplayReply" not in st.session_state:
 
 # 入力フォームと送信ボタンのUIの作成
 if st.session_state.isDisplayReply == 0:
-    text_my_profile_input = st.text_area("自分のプロフィール", height=150, max_chars=400)
-    text_your_profile_input = st.text_area("相手のプロフィール", height=150, max_chars=400)
+    text_my_profile_input = st.text_area("自分のプロフィール", height=150, max_chars=600)
+    text_your_profile_input = st.text_area("相手のプロフィール", height=150, max_chars=600)
     send_button = st.button("送信")
 else:
     send_button = None
@@ -106,8 +123,11 @@ if send_button:
         elif type(chat_message) == AIMessage:
             message(chat_message.content, is_user=False, key=2 * index + 1)
 
+def clear_reply():
+    st.session_state["reply"] = ""
+
 if st.session_state.isDisplayReply == 1:
-    reply = st.text_input("相手の返信", max_chars=400)
+    reply = st.text_area("相手の返信",height=100, max_chars=400, key="reply")
     send_reply_button = st.button("返信を送信")
 else:
     send_reply_button = None
@@ -136,7 +156,7 @@ if send_reply_button:
 
     #　todo メッセージ履歴にしたい
     # chain.predict(input="メッセージの履歴:\n```\n"+text_my_profile_input+"\n```\n相手からの返信:\n```\n"+reply+"\n```")
-
+    
     # セッションへのチャット履歴の保存
     st.session_state["memory"] = memory
 
